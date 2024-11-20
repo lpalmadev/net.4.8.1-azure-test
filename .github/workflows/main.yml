@@ -28,8 +28,9 @@ jobs:
 
     # Step 5: Build and publish the application
     - name: Build and Publish
+      shell: cmd
       run: |
-        msbuild TestAppService/TestAppService.csproj ^
+        msbuild TestAppService\TestAppService.csproj ^
           /p:Configuration=Release ^
           /p:OutDir="${{ github.workspace }}\publish" ^
           /p:DeployOnBuild=true
