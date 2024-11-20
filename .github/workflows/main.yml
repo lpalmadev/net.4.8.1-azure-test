@@ -29,7 +29,10 @@ jobs:
     # Step 5: Build and publish the application
     - name: Build and Publish
       run: |
-        msbuild TestAppService/TestAppService.csproj /p:Configuration=Release /p:DeployOnBuild=true /p:WebPublishMethod=FileSystem /p:publishUrl="${{ github.workspace }}\publish"
+        msbuild TestAppService/TestAppService.csproj ^
+          /p:Configuration=Release ^
+          /p:OutDir="${{ github.workspace }}\publish" ^
+          /p:DeployOnBuild=true
 
     # Step 6: Debug Build Output
     - name: Debug Build Output
