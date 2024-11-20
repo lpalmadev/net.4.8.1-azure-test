@@ -9,11 +9,7 @@ env:
   AZURE_WEBAPP_PACKAGE_PATH: 'D:\a\net.4.8.1-azure-test\net.4.8.1-azure-test\bin\'
 jobs:
   build:
-    runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: aspnet-mvc-dotnetframework48
-        
+    runs-on: windows-latest        
     steps:
     # Step 1: Check out the code
     - name: Checkout Code
