@@ -4,7 +4,9 @@ on:
   push:
     branches:
       - main  # Trigger on push to the main branch.
-
+env:
+  AZURE_WEBAPP_NAME: test-net
+  AZURE_WEBAPP_PACKAGE_PATH: 'D:\a\net.4.8.1-azure-test\net.4.8.1-azure-test\bin\'
 jobs:
   build-and-deploy:
     runs-on: windows-latest
@@ -27,28 +29,20 @@ jobs:
       run: nuget restore TestAppService.sln
 
     # Step 5: Build and publish the application
-    - name: Build and Publish
-      shell: cmd
+    - name: Build
       run: |
-        msbuild TestAppService\TestAppService.csproj ^
-          /p:Configuration=Release ^
-          /p:OutDir="${{ github.workspace }}\publish" ^
-          /p:DeployOnBuild=true
+        msbuild TestAppService.sln /t:Build /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
 
-    # Step 6: Debug Build Output
-    - name: Debug Build Output
-      run: dir "${{ github.workspace }}\publish" /s
-
-    # Step 7: Zip the Published Files
-    - name: Archive Published Files
-      if: success() && steps.debug.outputs.exists == 'true'
+    # Step 7: Published Files
+    - name: Published Files
       run: |
-        powershell Compress-Archive -Path "${{ github.workspace }}\publish\*" -DestinationPath "${{ github.workspace }}\app.zip"
+        msbuild TestAppService.sln /t:Publish /p:Configuration=Release /p:Platform="Any CPU" /p:PublishDir="./artifacts"
 
     # Step 8: Deploy to Azure App Service
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
-        app-name: 'test-net'  # Replace with your App Service name
+        app-name: ${{env.AZURE_WEBAPP_NAME}}  # Replace with your App Service name
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        package: "${{ github.workspace }}/app.zip"
+        package: artifacts/
+        #package: "${{ github.workspace }}/app.zip"
