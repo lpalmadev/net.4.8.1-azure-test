@@ -3,7 +3,7 @@ name: Deploy .NET Framework App to Azure App Service
 on:
   push:
     branches:
-      - main  # Deploy only on push to the main branch. Change this if needed.
+      - main  # Trigger on push to the main branch.
 
 jobs:
   build-and-deploy:
@@ -26,14 +26,20 @@ jobs:
     - name: Restore NuGet Packages
       run: nuget restore TestAppService.sln
 
-    # Step 5: Build the application
-    - name: Build the Application
-      run: msbuild TestAppService.sln /p:Configuration=Release /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation=${{ github.workspace }}\package.zip
+    # Step 5: Build and publish the application
+    - name: Build and Publish
+      run: |
+        msbuild TestAppService.csproj /p:Configuration=Release /p:DeployOnBuild=true /p:WebPublishMethod=FileSystem /p:publishUrl="${{ github.workspace }}/publish"
 
-    # Step 6: Deploy to Azure App Service
+    # Step 6: Zip the published files
+    - name: Archive Published Files
+      run: |
+        powershell Compress-Archive -Path "${{ github.workspace }}/publish/*" -DestinationPath "${{ github.workspace }}/app.zip"
+
+    # Step 7: Deploy to Azure App Service
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
         app-name: 'test-net'  # Replace with your App Service name
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        package: ${{ github.workspace }}\package.zip
+        package: "${{ github.workspace }}/app.zip"
