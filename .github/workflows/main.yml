@@ -8,9 +8,12 @@ env:
   AZURE_WEBAPP_NAME: test-net
   AZURE_WEBAPP_PACKAGE_PATH: 'D:\a\net.4.8.1-azure-test\net.4.8.1-azure-test\bin\'
 jobs:
-  build-and-deploy:
+  build:
     runs-on: windows-latest
-
+    defaults:
+      run:
+        working-directory: aspnet-mvc-dotnetframework48
+        
     steps:
     # Step 1: Check out the code
     - name: Checkout Code
@@ -31,18 +34,43 @@ jobs:
     # Step 5: Build and publish the application
     - name: Build
       run: |
-        msbuild TestAppService.sln /t:Build /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
+        msbuild TestAppService.sln msbuild AspnetMvc48.sln /p:Configuration=Release /p:DeployOnBuild=true /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=FileSystem /p:publishUrl=${{ github.workspace }}\publish /p:PrecompileBeforePublish=true /p:EnableUpdateable=false
+    
+    - name: Zip
+      run: compress-archive ${{ github.workspace }}\publish\* ${{ github.workspace }}\app.zip
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+          name: app
+          path: ${{ github.workspace }}\app.zip
+  deploy:
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - name: Download app
+        uses: actions/download-artifact@v3
+        with:
+          name: app
+          
+      - name: Deploy to App Service
+        uses: azure/webapps-deploy@v2
+        with: 
+          app-name: ${{env.AZURE_WEBAPP_NAME}} 
+          publish-profile: ${{ secrets.AZURE_APP_SERVICE_PUBLISH_PROFILE }}
+          package: ${{ github.workspace }}\app.zip
+
 
     # Step 7: Published Files
-    - name: Published Files
-      run: |
-        msbuild TestAppService.sln /t:Publish /p:Configuration=Release /p:Platform="Any CPU" /p:PublishDir="./artifacts"
+   # - name: Published Files
+    #  run: |
+     #   msbuild TestAppService.sln /t:Publish /p:Configuration=Release /p:Platform="Any CPU" /p:PublishDir="./artifacts"
 
     # Step 8: Deploy to Azure App Service
-    - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: ${{env.AZURE_WEBAPP_NAME}}  # Replace with your App Service name
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        package: artifacts/
+    #- name: Deploy to Azure Web App
+    #  uses: azure/webapps-deploy@v2
+    #  with:
+     #   app-name: ${{env.AZURE_WEBAPP_NAME}}  # Replace with your App Service name
+      #  publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+      #  package: artifacts/
         #package: "${{ github.workspace }}/app.zip"
