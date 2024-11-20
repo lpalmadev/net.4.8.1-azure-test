@@ -29,14 +29,19 @@ jobs:
     # Step 5: Build and publish the application
     - name: Build and Publish
       run: |
-        msbuild TestAppService/TestAppService.csproj /p:Configuration=Release /p:DeployOnBuild=true /p:WebPublishMethod=FileSystem /p:publishUrl="${{ github.workspace }}/publish"
+        msbuild TestAppService/TestAppService.csproj /p:Configuration=Release /p:DeployOnBuild=true /p:WebPublishMethod=FileSystem /p:publishUrl="${{ github.workspace }}\publish"
 
-    # Step 6: Zip the published files
+    # Step 6: Debug Build Output
+    - name: Debug Build Output
+      run: dir "${{ github.workspace }}\publish" /s
+
+    # Step 7: Zip the Published Files
     - name: Archive Published Files
+      if: success() && steps.debug.outputs.exists == 'true'
       run: |
-        powershell Compress-Archive -Path "${{ github.workspace }}/publish/*" -DestinationPath "${{ github.workspace }}/app.zip"
+        powershell Compress-Archive -Path "${{ github.workspace }}\publish\*" -DestinationPath "${{ github.workspace }}\app.zip"
 
-    # Step 7: Deploy to Azure App Service
+    # Step 8: Deploy to Azure App Service
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
