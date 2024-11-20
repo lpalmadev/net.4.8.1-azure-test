@@ -28,7 +28,7 @@ jobs:
 
     # Step 5: Build the application
     - name: Build the Application
-      run: msbuild TestAppService.sln /p:Configuration=Release /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation=$(System.DefaultWorkingDirectory)\package.zip
+      run: msbuild TestAppService.sln /p:Configuration=Release /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation=${{ github.workspace }}\package.zip
 
     # Step 6: Deploy to Azure App Service
     - name: Deploy to Azure Web App
