@@ -30,7 +30,7 @@ jobs:
     # Step 5: Build and publish the application
     - name: Build
       run: |
-        msbuild TestAppService.sln msbuild AspnetMvc48.sln /p:Configuration=Release /p:DeployOnBuild=true /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=FileSystem /p:publishUrl=${{ github.workspace }}\publish /p:PrecompileBeforePublish=true /p:EnableUpdateable=false
+        msbuild TestAppService.sln /p:Configuration=Release /p:DeployOnBuild=true /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=FileSystem /p:publishUrl=${{ github.workspace }}\publish /p:PrecompileBeforePublish=true /p:EnableUpdateable=false
     
     - name: Zip
       run: compress-archive ${{ github.workspace }}\publish\* ${{ github.workspace }}\app.zip
